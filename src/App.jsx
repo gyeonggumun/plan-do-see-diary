@@ -4,7 +4,7 @@ import DiaryList from './components/DiaryList';
 import WeeklySummary from './components/WeeklySummary';
 import VerificationGuide from './components/VerificationGuide';
 import { migrateRecords } from './utils/diaryUtils';
-import './index.css'; // 전역 CSS 연결
+import './index.css';
 
 export default function App() {
   const [records, setRecords] = useState([]);
