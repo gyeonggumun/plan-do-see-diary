@@ -1,122 +1,95 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import DiaryForm from './components/DiaryForm';
+import DiaryList from './components/DiaryList';
+import WeeklySummary from './components/WeeklySummary';
+import VerificationGuide from './components/VerificationGuide';
+import { migrateRecords } from './utils/diaryUtils';
+import './index.css'; // 전역 CSS 연결
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [records, setRecords] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [migrationStatus, setMigrationStatus] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('plan-do-see-records');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const { migratedData, isMigrated } = migrateRecords(parsed);
+        setRecords(migratedData);
+        if (isMigrated) setMigrationStatus("v1 기록이 v2 형식으로 안전하게 변환되었습니다.");
+      }
+    } catch (error) {
+      setErrorMsg("손상된 파일입니다. 데이터를 불러올 수 없습니다.");
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('plan-do-see-records', JSON.stringify(records));
+  }, [records]);
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(records, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = "diary-records.json";
+    link.click();
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        const { migratedData } = migrateRecords(importedData);
+        setRecords(migratedData);
+        setErrorMsg("");
+      } catch (error) {
+        setErrorMsg("올바른 JSON 파일이 아닙니다.");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-title">
+          <h1>플랜두씨 다이어리</h1>
+          <p>나만의 가상 기록기 (데이터는 기기에만 저장됩니다)</p>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+        
+        <div className="header-actions">
+          <label className="btn btn-outline">
+            가져오기
+            <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+          </label>
+          <button onClick={handleExport} className="btn btn-primary">내보내기</button>
+          <button onClick={() => { if(window.confirm('전체 삭제하시겠습니까?')) setRecords([]) }} className="btn btn-danger">
+            전체 삭제
+          </button>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
+      {migrationStatus && <div className="alert alert-success">{migrationStatus}</div>}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      <div className="main-grid">
+        <div className="sidebar-col">
+          <DiaryForm setRecords={setRecords} />
+          <WeeklySummary records={records} />
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        <div className="content-col">
+          <DiaryList records={records} setRecords={setRecords} />
         </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </div>
+      
+      <VerificationGuide />
+    </div>
+  );
 }
-
-export default App
