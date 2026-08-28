@@ -6,7 +6,7 @@ export default function DiaryForm({ setRecords, editingRecord, onUpdateComplete 
   const [formData, setFormData] = useState(
     editingRecord || {
       date: new Date().toISOString().split('T')[0],
-      item: '학습',
+      item: '정보처리기사 실기',
       value: '',
       unit: '시간',
       tag: '기본값'

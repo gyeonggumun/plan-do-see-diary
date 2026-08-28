@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DiaryForm from './components/DiaryForm';
 import DiaryList from './components/DiaryList';
 import WeeklySummary from './components/WeeklySummary';
-import VerificationGuide from './components/VerificationGuide';
 import { migrateRecords } from './utils/diaryUtils';
-import './index.css';
+import './index.css'; 
 
 export default function App() {
   const [records, setRecords] = useState([]);
@@ -60,7 +59,7 @@ export default function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="header-title">
-          <h1>플랜두씨 다이어리</h1>
+          <h1>나의 자격증 공부 계획표</h1>
           <p>나만의 가상 기록기 (데이터는 기기에만 저장됩니다)</p>
         </div>
         
@@ -88,8 +87,6 @@ export default function App() {
           <DiaryList records={records} setRecords={setRecords} />
         </div>
       </div>
-      
-      <VerificationGuide />
     </div>
   );
 }
